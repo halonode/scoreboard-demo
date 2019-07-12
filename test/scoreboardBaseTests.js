@@ -28,4 +28,23 @@ describe('ScoreboardBase', function () {
     afterEach(function () {
         sandbox.restore();
     });
-});
+
+    describe('Exception unless onGetLuaScripts overridden.', function () {
+        it('test onGetLuaScripts override on load!.', function () {
+            return ScoreboardBase.create(redis, "sbTest")
+            .then(() => {
+                assert.ok(false);   // should not come here.
+            })
+            .catch((err) => {
+                assert.ok(true);    // should come here!
+                assert.strictEqual(err.message, "Override this!");
+            });
+        });
+    });
+
+    
+
+        
+
+
+    });
