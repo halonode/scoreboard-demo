@@ -51,10 +51,21 @@ describe('ScoreboardBase', function () {
                 }
 
                 const luascripts = {};
+                luascripts[ScoreboardBase.lua.getScoreAndRank] = {script: __readScript('/desc/getScoreAndRank.lua')};
+
                 return luascripts;
             }
+        } // TestScoreboard Class
 
-        } // TestScoreBoard Class
+        describe('factory scoreboard', function () {
+            it('create board instance', function () {
+                const ghostRegister = sandbox.stub(TestScoreboard.prototype, '_registerScript');
+                ghostRegister.callsFake(function(){
+                    return Promise.resolve();
+                });
+            });
+            
+        });
 
         
     }); // Unit TestScoreboard 
