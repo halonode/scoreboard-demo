@@ -134,9 +134,121 @@ describe('ScoreboardBase', function () {
                             }
                         });
                     });
-                });
+                }); //_registerScript
+            });
+        }); //lua script loader
+
+    describe('unit testing methods', function () {
+        let sb;
+        before(function () {
+            return TestScoreboard.create(redis,"sbTest")
+            .then((_sb) => {                
+                sb = _sb;
             });
         });
+
+        after(function () {
+            return sb.clear()
+            .then(() => {                
+                return redis.flushdbAsync();
+            });
+        });
+
+        beforeEach(function() {
+            return Promise.all([
+                sb.setScore("Odin",400),
+                sb.setScore("Artemis",300),
+                sb.setScore("Pantheon",500)
+            ]);
+        });
+
+        afterEach(function(){
+            return sb.clear()
+        });
+
+        describe('unit testing protected methods', function () {
+            
+            describe('_clear', function () {
+                it('are you ok', function () {
+                    return sb._clear()
+                    .then(() => {
+                        
+                        return sb._count()
+                        .then((count) => {
+                            
+                            assert.strictEqual(count, 0);
+                        });
+                    });
+                });
+            }); // _clear
+
+
+            describe('_count', function () {
+                it('are you 3', function () {
+                    return sb._count()
+                    .then((count) => {
+                        assert.strictEqual(count, 3);                        
+                    });
+                });
+            }); // _count
+
+            describe('_remove', function () {
+                it('can you remove', function () {
+                    return sb._remove("Artemis")
+                    .then(() => {
+                        return sb._count()
+                        .then((count) => {
+                            assert.strictEqual(count, 2);
+                            return sb._getPosition("Artemis")
+                        })
+                        .then((res) => {
+                            // Artemis is gone...
+                            assert.strictEqual(res, null);
+                            
+                        });
+                    });
+                });
+            }); // _remove
+
+            describe('_setScore', function () {
+                it('is score setter good', function () {
+                    return Promise.resolve()
+                    .then(() => {
+                        return sb._setScore("Eve", 10)
+                        .then(() => {
+                            return sb_._getScoreAndRank("Eve")                            
+                        })
+                        .then((res) => {
+                            assert.strictEqual(res[0], 10)
+                            return sb._count();
+                        })
+                        .then((count) => {
+                            assert.strictEqual(count, 4);                            
+                        });
+                        
+                    })
+                    .then(() => {
+                        return sb._setScore("Eve", 20)
+                        .then(() => {
+                            return sb._getScoreAndRank("Eve")
+                            
+                        })
+                        .then((res) => {
+                            assert.strictEqual(res[0], 20);
+                            return sb._count();                            
+                        })
+                        .then((count) => {
+                            assert.strictEqual(count, 4);                            
+                        });
+                        
+                    });
+                });
+            }); //_setScore
+
+        }); // unit testing methods
+
+    });
+
         
     }); // Unit TestScoreboard 
 
