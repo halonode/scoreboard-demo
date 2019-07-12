@@ -12,7 +12,7 @@ describe('ScoreboardBase', function () {
     let redis, sandbox;
 
     before(function () {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
 
         return PrepareRedis.prepare()
         .then((_redis) => {
@@ -47,7 +47,7 @@ describe('ScoreboardBase', function () {
         class TestScoreboard extends ScoreboardBase {
             onGetLuaScripts(){
                 function __readScript(fn){
-                    return fs.readFileSync(__dirname + '../lib/luascripts' + fn, 'utf8') 
+                    return fs.readFileSync(__dirname + '/../lib/luascripts' + fn, 'utf8') 
                 }
 
                 const luascripts = {};
@@ -63,10 +63,80 @@ describe('ScoreboardBase', function () {
                 ghostRegister.callsFake(function(){
                     return Promise.resolve();
                 });
-            });
-            
+
+                return TestScoreboard.create(redis,"TESTBEST")
+                .then((instance) => {
+                    
+                    assert.ok(instance instanceof TestScoreboard);
+                    assert.strictEqual(instance._redis, redis);
+                    assert.strictEqual(instance._sbname, "TESTBEST");
+                    assert.strictEqual(ghostRegister.callCount, 1);
+                });
+            }); 
         });
 
+        describe('lua script loader', function () {
+            let sb;
+            before(function () {
+                return TestScoreboard.create(redis,"sbTest")
+                .then((_sb) => {
+                    sb = _sb;
+                })
+            });
+
+            after(function () {
+                return sb.clear()
+                .then(() => {
+                    
+                    return redis.flushdbAsync();
+                });
+            });
+
+            describe('loaded luascripts on redis', function () {
+                it('_scriptSHA', function () {
+                    assert.strictEqual(sb._scriptSHA('sb_score_rank'), sb._luascripts.sb_score_rank.sha);
+                    assert.strictEqual(sb._scriptSHA('TESTBEST'), null);
+                });
+
+                it('_registerScript', function () {
+                    const ghostScripts = sandbox.stub(sb, 'onGetLuaScripts');
+                    ghostScripts.callsFake(function(){
+                        return {
+                            test: {
+                                script:"123456"
+                            }
+                        };
+                    });
+
+                    let loadCall = 0;
+                    const ghostLured = sandbox.stub(lured, 'create');
+                    ghostLured.callsFake(function(){
+                        return {
+                            load: function(cb){
+                                ++loadCall;
+                                cb(null);
+                            }
+                        }
+                    });
+
+                    return sb._registerScript()
+                    .then(() => {
+                        
+                        assert.strictEqual(ghostScripts.callCount, 1);
+                        assert.strictEqual(ghostLured.callCount, 1);
+                        assert.strictEqual(ghostLured.args[0].length, 2);
+                        assert.strictEqual(ghostLured.args[0][0], sb._redis);
+                        assert.strictEqual(ghostLured.args[0][1], sb._luascripts);
+                        assert.strictEqual(loadCall, 1);
+                        assert.deepEqual(sb._luascripts, {
+                            test: {
+                                script: "123456"
+                            }
+                        });
+                    });
+                });
+            });
+        });
         
     }); // Unit TestScoreboard 
 
