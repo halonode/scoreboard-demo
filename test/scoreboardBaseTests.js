@@ -42,9 +42,22 @@ describe('ScoreboardBase', function () {
         });
     });
 
-    
+    describe('unit tests using TestScoreboard.', function () {
+        // TestScoreboard class for testing.
+        class TestScoreboard extends ScoreboardBase {
+            onGetLuaScripts(){
+                function __readScript(fn){
+                    return fs.readFileSync(__dirname + '../lib/luascripts' + fn, 'utf8') 
+                }
+
+                const luascripts = {};
+                return luascripts;
+            }
+
+        } // TestScoreBoard Class
 
         
+    }); // Unit TestScoreboard 
 
 
-    });
+});
