@@ -52,6 +52,7 @@ describe('ScoreboardBase', function () {
 
                 const luascripts = {};
                 luascripts[ScoreboardBase.lua.getScoreAndRank] = {script: __readScript('/desc/getScoreAndRank.lua')};
+                luascripts[ScoreboardBase.lua.getPosition] = {script: __readScript('/desc/getPosition.lua') };
 
                 return luascripts;
             }
@@ -94,7 +95,7 @@ describe('ScoreboardBase', function () {
 
             describe('loaded luascripts on redis', function () {
                 it('_scriptSHA', function () {
-                    assert.strictEqual(sb._scriptSHA('sb_score_rank'), sb._luascripts.sb_score_rank.sha);
+                    assert.strictEqual(sb._scriptSHA('sb_pos'), sb._luascripts.sb_pos.sha);
                     assert.strictEqual(sb._scriptSHA('TESTBEST'), null);
                 });
 
@@ -216,7 +217,7 @@ describe('ScoreboardBase', function () {
                     .then(() => {
                         return sb._setScore("Eve", 10)
                         .then(() => {
-                            return sb_._getScoreAndRank("Eve")                            
+                            return sb._getScoreAndRank("Eve")              
                         })
                         .then((res) => {
                             assert.strictEqual(res[0], 10)
