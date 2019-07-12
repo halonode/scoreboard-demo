@@ -40,4 +40,4 @@ jspm_packages
 coverage
 doc/
 .node-version
-.DS_Store.DS_Store
+.DS_Store
