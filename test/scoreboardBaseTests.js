@@ -54,6 +54,7 @@ describe('ScoreboardBase', function () {
                 luascripts[ScoreboardBase.lua.getScoreAndRank] = {script: __readScript('/desc/getScoreAndRank.lua')};
                 luascripts[ScoreboardBase.lua.getPosition] = {script: __readScript('/desc/getPosition.lua') };
                 luascripts[ScoreboardBase.lua.getRange] = {script: __readScript('/desc/getRange.lua') };
+                luascripts[ScoreboardBase.lua.getRank] = {script: __readScript('/desc/getRank.lua') };
 
                 return luascripts;
             }
@@ -286,6 +287,55 @@ describe('ScoreboardBase', function () {
                 });
             });
 
+            describe('_getRangeAndTotal', function () {
+                it('can you get total players with range', function () {
+                    return sb._getRangeAndTotal(0, 2)
+                    .then((res) => {
+                        assert.deepEqual(res, {
+                            total: 3,
+                            range: [ 
+                            "Pantheon", 500,
+                            "Odin", 400,
+                            "Artemis", 300                            ]
+                        })
+                        
+                    });
+                });
+                
+            });
+
+            describe('_settleRank', function () {
+                it('settle rank', function () {
+                    return sb._settleRank([
+                        ["Pantheon", 500],
+                        ["Odin", 400],
+                        ["Artemis", 300]
+                    ])
+                    .then((res) => {
+                        assert.deepEqual(res, [
+                            1, 2, 3
+                        ]);
+                    });
+                });
+            });
+
+            describe('_getRankFromScore', function () {
+                it('rank from score.', function () {
+                    return Promise.resolve()
+                    .then(() => {
+                        return sb._getRankFromScore(400)
+                        .then((rank) => {
+                            assert.strictEqual(rank, 2);
+                        });
+                    })
+                    .then(() => {
+                        return sb._getRankFromScore(500)
+                        .then((rank) => {
+                            assert.strictEqual(rank, 1);
+                        });
+                    });
+                });
+            });
             
 
         }); // unit testing protected methods
