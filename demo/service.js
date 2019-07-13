@@ -22,7 +22,20 @@ class ScoreboardService {
         });
     }
 
-    
+    static clear() {
+        return this._instance.clear();
+    }
+
+    static insertRandom(num) {
+        const promises = [];
+        for (let i = 0; i < num; ++i) {
+            const name = 'player' + ScoreboardService._nameSeed++;
+            const score = (Math.random() * 1000 | 0);
+
+            promises.push(this._instance.setScore(name, score));
+        }
+        return Promise.all(promises);
+    }
 }
 
 // static fields.
