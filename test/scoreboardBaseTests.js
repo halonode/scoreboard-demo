@@ -246,7 +246,14 @@ describe('ScoreboardBase', function () {
                 });
             }); //_setScore
 
-        }); // unit testing methods
+            
+
+        }); // unit testing protected methods
+
+
+        describe('unit testing public methods', function () {
+            
+        });
 
     });
 
