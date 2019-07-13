@@ -246,6 +246,29 @@ describe('ScoreboardBase', function () {
                 });
             }); //_setScore
 
+            describe('_modifyScore', function () {
+                it('case positive', function () {
+                    return sb._modifyScore("Odin", 50)
+                    .then(() => {
+                        return sb._getScoreAndRank("Odin")
+                        .then((res) => {
+                             assert.strictEqual(res[0], 450);                            
+                        });
+                        
+                    });
+                });
+
+                it('case negative', function () {
+                    return sb._modifyScore("Artemis", -50)
+                    .then(() => {
+                        return sb._getScoreAndRank("Artemis")
+                        .then((res) => {
+                            assert.strictEqual(res[0], 250);                            
+                        });                        
+                    });
+                });
+            });
+
             
 
         }); // unit testing protected methods

@@ -22,10 +22,6 @@ class ScoreboardService {
         });
     }
 
-    static clear() {
-        return this._instance.clear();
-    }
-
     static insertRandom(num) {
         const promises = [];
         for (let i = 0; i < num; ++i) {
@@ -36,6 +32,19 @@ class ScoreboardService {
         }
         return Promise.all(promises);
     }
+
+    static clear() {
+        return this._instance.clear();
+    }
+
+    static remove(name){
+        return this._instance.remove(name);
+    }
+
+    static modifyScore(name, delta) {
+        return this._instance.modifyScore(name, delta);
+    }
+
 }
 
 // static fields.
