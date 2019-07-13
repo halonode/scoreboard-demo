@@ -53,6 +53,7 @@ describe('ScoreboardBase', function () {
                 const luascripts = {};
                 luascripts[ScoreboardBase.lua.getScoreAndRank] = {script: __readScript('/desc/getScoreAndRank.lua')};
                 luascripts[ScoreboardBase.lua.getPosition] = {script: __readScript('/desc/getPosition.lua') };
+                luascripts[ScoreboardBase.lua.getRange] = {script: __readScript('/desc/getRange.lua') };
 
                 return luascripts;
             }
@@ -265,6 +266,22 @@ describe('ScoreboardBase', function () {
                         .then((res) => {
                             assert.strictEqual(res[0], 250);                            
                         });                        
+                    });
+                });
+            });
+
+            describe('_getRange', function () {
+                it('are you in range', function () {
+                    return sb._getRange(0, 2)
+                    .then((res) => {
+                        assert.deepEqual(res, {
+                            range: [
+                                "Pantheon", 500,
+                                "Odin", 400,
+                                "Artemis", 300
+                            ]
+                        })
+                        
                     });
                 });
             });
