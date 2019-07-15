@@ -7,10 +7,36 @@ const ScoreboardService = require('./service');
 class ScoreboardController {
     static register(app) {
         app.get('/', this.list);
+        app.get('/toplist', this.topList);
         app.post("/clear", this.clear);
         app.post("/insert", this.insert);
         app.post("/modify", this.modify);
         app.post("/remove", this.remove);
+    }
+
+    static topList(req, res) {
+        //return res.render('topList.ejs');
+
+        return ScoreboardService.getTopList()
+        .then((list) => {
+            res.render('topList.ejs', {
+                list: list.list
+            });
+        });
+    }
+
+    static list(req, res) {
+        const page = +req.query.page || 1;
+
+        return ScoreboardService.getList(page)
+        .then((list) => {
+            res.render('index.ejs', {
+                page: list.page,
+                maxPage: list.maxPage,
+                total: list.total,
+                list: list.list
+            });
+        });
     }
 
     static clear(req, res) {
@@ -49,10 +75,10 @@ class ScoreboardController {
         return ScoreboardService.remove(name)
         .then(() => {
             res.json({});            
-        });
+        })
         .catch(() => {
             res.status(400).send('wrong request!');
-        })
+        });
     }
 }
 

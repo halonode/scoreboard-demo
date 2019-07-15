@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>scoreboard demo</title>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <script>
+        function updatePage(page) {
+            document.location = "?page=" + page;
+        }
+        function reloadPage() {
+            document.location.reload();
+        }
+        jQuery(function($) {
+            $('#clear').click(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/clear',
+                    type: 'POST',
+                    success: function(/*result, textStatus, xhr*/) {
+                        updatePage(1);
+                    }
+                });
+            });
+            $('#insert').submit(function (e) {
+                e.preventDefault();
+                const _form = $(this);
+                $.ajax({
+                    url: '/insert',
+                    type: 'POST',
+                    data: _form.serialize(),
+                    success: function(/*result, textStatus, xhr*/) {
+                        reloadPage();
+                    }
+                });
+            });
+            $('.modifyScore').click(function (e) {
+                e.preventDefault();
+                const _link = $(this);
+                $.ajax({
+                    url: '/modify',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        name: _link.attr("name"),
+                        delta: _link.attr("delta")
+                    }),
+                    success: function () {
+                        reloadPage();
+                    },
+                    error: function (xhr, /*textStatus, errorThrown*/) {
+                        alert("error: " + xhr.status);
+                    }
+                });
+            });
+            $('.remove').click(function (e) {
+                e.preventDefault();
+                const _link = $(this);
+                $.ajax({
+                    url: '/remove',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        name: _link.attr("name")
+                    }),
+                    success: function () {
+                        reloadPage();
+                    },
+                    error: function (xhr, /*textStatus, errorThrown*/) {
+                        alert("error: " + xhr.status);
+                    }
+                });
+            });
+            
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="row">
+            <h2>scoreboardemo top list.</h2>
+
+            <div style="padding:12px 12px 0px 0px;">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>rank</th>
+                        <th>userID</th>
+                        <th>score</th>
+                        <th>userName</th>
+                        <th>userAge</th>
+                        <th>rankChange</th>
+
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <% list.forEach((data) => { %>
+                    <tr>
+                        <td><%=data.rank%></td>
+                        <td><%=data.userId%></td>
+                        <td><%=data.score%></td>
+                        <td><%=data.userName%></td>
+                        <td><%=data.userAge%></td>
+                        <td><%=data.rankChange%></td>
+                        <td></td>
+                    </tr>
+                    <% }); %>
+                </table>
+            </div>
+
+
+        </div>
+
+    </div>
+</body>
+</html>

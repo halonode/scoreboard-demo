@@ -9,6 +9,7 @@ const path = require("path");
 const ejs = require("ejs");
 const Promise = require('bluebird');
 const redis = Promise.promisifyAll(require('redis'));
+const mongoose = Promise.promisifyAll(require('mongoose'));
 const bodyParser = require('body-parser');
 
 const controller = require('./controller');
@@ -30,6 +31,7 @@ app.engine('ejs',ejs.renderFile);
 controller.register(app);
 
 let redisCli = null;
+let mongoCli = null;
 
 function prepareRedis() {
     // prepare redis.
@@ -48,8 +50,26 @@ function prepareRedis() {
     });
 }
 
+function prepareMongo() {
+    // prepare mongo.
+    return new Promise((resolve, reject) => {
+        mongoCli = mongoose;
+        mongoCli.connect('mongodb://localhost:27017/scoreboarddb', {useNewUrlParser: true});
+        mongoCli.connection.on("connected", function () {
+            /* eslint-disable no-console */
+            console.log("mongo ready!");
+            /* eslint-enable no-console */
+            resolve();
+        });
+        mongoCli.connection.on('error', err => {
+            reject(err);
+        });
+        
+    });
+}
+
 function initializeService() {
-    return service.initialize(redisCli);
+    return service.initialize(redisCli, mongoCli);
 }
 
 function startListening() {
@@ -72,6 +92,9 @@ function startListening() {
 prepareRedis()
 .then(() => {
     // initialize scoreboard service..
+    return prepareMongo();
+})
+.then(() => {
     return initializeService();
 })
 .then(() => {

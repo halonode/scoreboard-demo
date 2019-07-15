@@ -6,10 +6,11 @@ const fs = require('fs');
 const sinon = require('sinon');
 const lured = require('lured');
 const PrepareRedis = require('./prepareRedis');
+const PrepareMongo = require('./prepareMongo');
 const ScoreboardBase = require('../index').ScoreboardBase;
 
 describe('ScoreboardBase', function () {
-    let redis, sandbox;
+    let redis, sandbox, mongo;
 
     before(function () {
         sandbox = sinon.createSandbox();
@@ -17,12 +18,18 @@ describe('ScoreboardBase', function () {
         return PrepareRedis.prepare()
         .then((_redis) => {
             redis = _redis;
+        }).then(() => {
+           return PrepareMongo.prepare()
+           .then((_mongo) => {
+               mongo = _mongo;
+           }); 
         });
     });
 
     after(function () {
         // teardown.
         PrepareRedis.teardown(redis);
+        PrepareMongo.teardown(mongo);
     });
 
     afterEach(function () {
@@ -55,6 +62,8 @@ describe('ScoreboardBase', function () {
                 luascripts[ScoreboardBase.lua.getPosition] = {script: __readScript('/desc/getPosition.lua') };
                 luascripts[ScoreboardBase.lua.getRange] = {script: __readScript('/desc/getRange.lua') };
                 luascripts[ScoreboardBase.lua.getRank] = {script: __readScript('/desc/getRank.lua') };
+                luascripts[ScoreboardBase.lua.getUserInfo] = {script: __readScript('/desc/getUserInfo.lua') };
+                luascripts[ScoreboardBase.lua.copyKey] = {script: __readScript('/copyKey.lua') };
 
                 return luascripts;
             }
@@ -144,7 +153,7 @@ describe('ScoreboardBase', function () {
     describe('unit testing methods', function () {
         let sb;
         before(function () {
-            return TestScoreboard.create(redis,"sbTest")
+            return TestScoreboard.create(redis, "sbTest", mongo)
             .then((_sb) => {                
                 sb = _sb;
             });
@@ -161,7 +170,10 @@ describe('ScoreboardBase', function () {
             return Promise.all([
                 sb.setScore("Odin",400),
                 sb.setScore("Artemis",300),
-                sb.setScore("Pantheon",500)
+                sb.setScore("Pantheon",500),
+                //sb.setTopListUserInfo("Odin", "Odin", 25, 400, 0),
+                //sb.setTopListUserInfo("Artemis", "Artemis", 25, 300, 0),
+                //sb.setTopListUserInfo("Pantheon", "Pantheon", 25, 500, 0)
             ]);
         });
 
@@ -219,7 +231,7 @@ describe('ScoreboardBase', function () {
                     .then(() => {
                         return sb._setScore("Eve", 10)
                         .then(() => {
-                            return sb._getScoreAndRank("Eve")              
+                            return sb._getScoreAndRank("Eve", sb._sbname)              
                         })
                         .then((res) => {
                             assert.strictEqual(res[0], 10)
@@ -233,7 +245,7 @@ describe('ScoreboardBase', function () {
                     .then(() => {
                         return sb._setScore("Eve", 20)
                         .then(() => {
-                            return sb._getScoreAndRank("Eve")
+                            return sb._getScoreAndRank("Eve", sb._sbname)
                             
                         })
                         .then((res) => {
@@ -248,11 +260,12 @@ describe('ScoreboardBase', function () {
                 });
             }); //_setScore
 
+
             describe('_modifyScore', function () {
                 it('case positive', function () {
                     return sb._modifyScore("Odin", 50)
                     .then(() => {
-                        return sb._getScoreAndRank("Odin")
+                        return sb._getScoreAndRank("Odin", sb._sbname)
                         .then((res) => {
                              assert.strictEqual(res[0], 450);                            
                         });
@@ -263,7 +276,7 @@ describe('ScoreboardBase', function () {
                 it('case negative', function () {
                     return sb._modifyScore("Artemis", -50)
                     .then(() => {
-                        return sb._getScoreAndRank("Artemis")
+                        return sb._getScoreAndRank("Artemis", sb._sbname)
                         .then((res) => {
                             assert.strictEqual(res[0], 250);                            
                         });                        
@@ -273,7 +286,7 @@ describe('ScoreboardBase', function () {
 
             describe('_getRange', function () {
                 it('are you in range', function () {
-                    return sb._getRange(0, 2)
+                    return sb._getRange(0, 2, sb._sbname)
                     .then((res) => {
                         assert.deepEqual(res, {
                             range: [
@@ -336,6 +349,21 @@ describe('ScoreboardBase', function () {
                     });
                 });
             });
+
+            describe('_copyKey(destination)', function () {
+                it('can you copy scoreboard data to destination', function () {
+                    return Promise.resolve()
+                    .then(() => {
+                        return sb._copyKey("TestSource")
+                        .then((res) => {
+                            assert.strictEqual(res , "OK");
+                        });
+                        
+                    });
+                });
+            });
+
+
             
 
         }); // unit testing protected methods
