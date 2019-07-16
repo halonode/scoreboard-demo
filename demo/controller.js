@@ -19,9 +19,14 @@ class ScoreboardController {
 
         return ScoreboardService.getTopList()
         .then((list) => {
-            res.render('topList.ejs', {
-                list: list.list
-            });
+            if(list.list == null){
+                res.redirect('/'); 
+            }else{
+                res.render('topList.ejs', {
+                    list: list.list
+                });
+            }
+            
         });
     }
 

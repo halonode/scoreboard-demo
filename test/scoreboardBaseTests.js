@@ -19,17 +19,18 @@ describe('ScoreboardBase', function () {
         .then((_redis) => {
             redis = _redis;
         }).then(() => {
-           return PrepareMongo.prepare()
+           /*return PrepareMongo.prepare()
            .then((_mongo) => {
                mongo = _mongo;
            }); 
+           */
         });
     });
 
     after(function () {
         // teardown.
         PrepareRedis.teardown(redis);
-        PrepareMongo.teardown(mongo);
+        //PrepareMongo.teardown(mongo);
     });
 
     afterEach(function () {
@@ -153,7 +154,7 @@ describe('ScoreboardBase', function () {
     describe('unit testing methods', function () {
         let sb;
         before(function () {
-            return TestScoreboard.create(redis, "sbTest", mongo)
+            return TestScoreboard.create(redis, "sbTest")
             .then((_sb) => {                
                 sb = _sb;
             });

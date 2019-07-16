@@ -5,12 +5,15 @@ const Promise = require('bluebird');
 const sinon = require('sinon');
 const PrepareRedis = require('./prepareRedis');
 const moment = require('moment');
+const UserModel = require('../model/UserModel');
+const PrepareMongo = require('./prepareMongo');
+
 
 // in this test let's using ScoreboardScoreDesc.
 const Scoreboard = require('../index').ScoreboardScoreDesc;
 
 describe('ScoreboardScoreDesc', function () {
-    let redis, sandbox;
+    let redis, sandbox, mongo;
 
     before(function () {
         sandbox = sinon.createSandbox();
@@ -18,11 +21,18 @@ describe('ScoreboardScoreDesc', function () {
         return PrepareRedis.prepare()
         .then((_redis) => {
             redis = _redis;
+        }).then(() => {
+           return PrepareMongo.prepare()
+           .then((_mongo) => {
+               mongo = _mongo;
+           }); 
         });
     });
 
     after(function () {
         PrepareRedis.teardown(redis);
+        PrepareMongo.teardown(mongo);
+
     });
 
     afterEach(function () {
@@ -33,7 +43,7 @@ describe('ScoreboardScoreDesc', function () {
         let sb;
 
         before(function () {
-            return Scoreboard.create(redis, "sbTest")
+            return Scoreboard.create(redis, "sbTest", mongo)
             .then((_sb) => {
                 sb = _sb;
             })
@@ -43,6 +53,10 @@ describe('ScoreboardScoreDesc', function () {
             return sb.clear()
             .then(() => {
                 return redis.flushdbAsync();
+            }).then(() => {
+                return sb._clearMongo();
+                
+                
             });
         });
 
@@ -120,29 +134,37 @@ describe('ScoreboardScoreDesc', function () {
                 .then(() => {
                     return sb._modifyScore("Odin", 250)
                     .then(() => {
-                        return sb.getTopList(2)
+                        return sb.getTopList(0)
                             .then((res) => {
-                                //console.log(res);
-                                /*assert.deepEqual(res, {
-                                    list: [
-                                        { userId: 'Pantheon', userName: 'Pantheon', userAge: 25, score: 300, rankChange: 0 },
-                                    ]
-                                });
-                                */
-                         });
+
+                                /*assert.deepEqual(res, { list: 
+                                   [ { userId: 'Odin',
+                                       score: 450,
+                                       rank: 1,
+                                       lastRank: 2,
+                                       userName: 'Odin',
+                                       userAge: 20 } ] })*/
+
+                            });
                         
-                    });
+                        });
                     
-                });    
-                
+                    });    
                 
                 });
             
             });
 
+            describe('getDataFromDb', function () {
+                it('can you get data from mongo', function () {
+                    return sb._getUserData("Odin")
+                    .then((res) => {
+                        //console.log(res);
+                        
+                    });
+                });
+            });
         
-
-
     });
 
 });

@@ -8,6 +8,7 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
     <script>
+        var i = 1;
         function updatePage(page) {
             document.location = "?page=" + page;
         }
@@ -15,6 +16,7 @@
             document.location.reload();
         }
         jQuery(function($) {
+
             $('#clear').click(function (e) {
                 e.preventDefault();
                 $.ajax({
@@ -89,6 +91,7 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
+                        <th>order</th>
                         <th>rank</th>
                         <th>userID</th>
                         <th>score</th>
@@ -99,8 +102,13 @@
                         <th></th>
                     </tr>
                     </thead>
-                    <% list.forEach((data) => { %>
+                    <% 
+                    var order=1;
+                    list.forEach((data) => { 
+
+                    %>
                     <tr>
+                        <td><%=order%></td>
                         <td><%=data.rank%></td>
                         <td><%=data.userId%></td>
                         <td><%=data.score%></td>
@@ -109,7 +117,7 @@
                         <td><%=data.rankChange%></td>
                         <td></td>
                     </tr>
-                    <% }); %>
+                    <% ++order; }); %>
                 </table>
             </div>
 

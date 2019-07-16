@@ -11,9 +11,33 @@ const Promise = require('bluebird');
 const redis = Promise.promisifyAll(require('redis'));
 const mongoose = Promise.promisifyAll(require('mongoose'));
 const bodyParser = require('body-parser');
-
 const controller = require('./controller');
 const service = require('./service');
+var Agenda = require('agenda');
+const weekJob = require('./weekjob.js');
+
+const mongoConnectionString = "mongodb://localhost:27017/scoreboarddb";
+
+// define weekly job
+const agenda = new Agenda({
+  db: {
+    address: mongoConnectionString,
+    options: {
+      useNewUrlParser: true,
+    },
+  }, maxConcurrency: 1, defaultConcurrency: 1
+});
+
+
+weekJob.define(agenda);
+
+agenda.on('ready', function(){
+  console.log('Agenda connected to mongodb');
+  weekJob.every(agenda);
+  agenda.start();
+});
+
+
 
 // using body parser.
 app.use(bodyParser.urlencoded({
@@ -54,7 +78,7 @@ function prepareMongo() {
     // prepare mongo.
     return new Promise((resolve, reject) => {
         mongoCli = mongoose;
-        mongoCli.connect('mongodb://localhost:27017/scoreboarddb', {useNewUrlParser: true});
+        mongoCli.connect(mongoConnectionString, {useNewUrlParser: true});
         mongoCli.connection.on("connected", function () {
             /* eslint-disable no-console */
             console.log("mongo ready!");
@@ -100,3 +124,13 @@ prepareRedis()
 .then(() => {
     return startListening();
 });
+
+function graceful() {
+  console.log('Stoping agenda!');
+  agenda.stop(function() {
+    process.exit(0);
+  });
+}
+
+//process.on('SIGTERM', graceful);
+//process.on('SIGINT' , graceful);

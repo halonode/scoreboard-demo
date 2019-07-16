@@ -22,7 +22,8 @@
     "lured": "*",
     "mongodb": "3.2.7",
     "mongoose": "5.6.4",
-    "moment": "2.24.0"
+    "moment": "2.24.0",
+    "agenda": "2.0.2"
   },
   "devDependencies": {
     "mocha": "6.1.x",
