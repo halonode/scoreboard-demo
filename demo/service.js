@@ -69,6 +69,9 @@ class ScoreboardService {
         return this._instance.modifyScore(name, delta);
     }
 
+    static marco(){
+        return this._instance.getTopList(listSize);
+    }
     
 
 }

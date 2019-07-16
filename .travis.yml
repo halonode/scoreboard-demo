@@ -1,6 +1,7 @@
 language: node_js
 services:
-    - redis-server
+  - redis-server
+  - mongodb
 node_js:
   - "10.16.0"
   - "9.0.0"  

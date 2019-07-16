@@ -22,10 +22,10 @@ describe('ScoreboardScoreDesc', function () {
         .then((_redis) => {
             redis = _redis;
         }).then(() => {
-           return PrepareMongo.prepare()
-           .then((_mongo) => {
-               mongo = _mongo;
-           }); 
+            return PrepareMongo.prepare()
+               .then((_mongo) => {
+                   mongo = _mongo;
+               }); 
         });
     });
 
@@ -108,7 +108,7 @@ describe('ScoreboardScoreDesc', function () {
         });
        
         
-        
+        /*
             describe('_getUserInfoFromUserId', function () {
                 it('can you get info', function () {
                     return Promise.resolve()
@@ -126,6 +126,7 @@ describe('ScoreboardScoreDesc', function () {
                     });
                 });
             });
+        */
 
             describe('getTopList', function () {
                 it('can you get top list', function () {

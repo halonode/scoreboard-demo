@@ -85,6 +85,11 @@ class ScoreboardController {
             res.status(400).send('wrong request!');
         });
     }
+
+    static polo (){
+        console.log("marco");
+        return true;
+    }
 }
 
 module.exports = ScoreboardController;
