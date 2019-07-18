@@ -52,10 +52,6 @@ describe('ScoreboardScoreDesc', function () {
             return sb.clear()
             .then(() => {
                 return redis.flushdbAsync();
-            }).then(() => {
-                return sb._clearMongo();
-                
-                
             });
         });
 
