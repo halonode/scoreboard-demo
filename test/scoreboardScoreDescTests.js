@@ -5,7 +5,6 @@ const Promise = require('bluebird');
 const sinon = require('sinon');
 const PrepareRedis = require('./prepareRedis');
 const moment = require('moment');
-const UserModel = require('../model/UserModel');
 const PrepareMongo = require('./prepareMongo');
 
 
@@ -66,14 +65,10 @@ describe('ScoreboardScoreDesc', function () {
             return Promise.all([
                 sb.setScore("Artemis", 100),
                 sb.setScore("Pantheon", 300),
-                sb.setScore("Odin", 200),
-                sb.setTopListUserInfo("Odin", "Odin", 25, 400, 0),
-                sb.setTopListUserInfo("Artemis", "Artemis", 25, 300, 0),
-                sb.setTopListUserInfo("Pantheon", "Pantheon", 25, 500, 0)
+                sb.setScore("Odin", 200)
             ]).then(() => {
                 const yesterday = moment().add(-1, 'days').format("YYYYMMDD");
                 return sb._copyKey(yesterday);
-                
             });
         });
 
@@ -84,7 +79,6 @@ describe('ScoreboardScoreDesc', function () {
 		describe('getList', function () {
             it('can we get list with pagination', function () {
                 const ghostGetRange = sandbox.spy(sb, "_getRangeAndTotal");
-
                 // get the first page when 3 names in each.
                 return sb.getList(1, 3)
                 .then((res) => {
@@ -106,66 +100,6 @@ describe('ScoreboardScoreDesc', function () {
                 });
             });
         });
-       
-        
-        /*
-            describe('_getUserInfoFromUserId', function () {
-                it('can you get info', function () {
-                    return Promise.resolve()
-                    .then(() => {
-                        return sb._getUserInfoFromUserId("Pantheon")
-                        .then((res) => {
-                            assert.strictEqual(res.userId, "Pantheon");  
-                        });
-
-                        return sb._getUserInfoFromUserId("Artemis")
-                        .then((res) => {
-                            assert.strictEqual(res.score, 100);  
-                        });
-                        
-                    });
-                });
-            });
-        */
-
-            describe('getTopList', function () {
-                it('can you get top list', function () {
-
-                return Promise.resolve()
-                .then(() => {
-                    return sb._modifyScore("Odin", 250)
-                    .then(() => {
-                        return sb.getTopList(0)
-                            .then((res) => {
-
-                                /*assert.deepEqual(res, { list: 
-                                   [ { userId: 'Odin',
-                                       score: 450,
-                                       rank: 1,
-                                       lastRank: 2,
-                                       userName: 'Odin',
-                                       userAge: 20 } ] })*/
-
-                            });
-                        
-                        });
-                    
-                    });    
-                
-                });
-            
-            });
-
-            describe('getDataFromDb', function () {
-                it('can you get data from mongo', function () {
-                    return sb._getUserData("Odin")
-                    .then((res) => {
-                        //console.log(res);
-                        
-                    });
-                });
-            });
-        
     });
 
 });

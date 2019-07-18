@@ -13,8 +13,15 @@ const mongoose = Promise.promisifyAll(require('mongoose'));
 const bodyParser = require('body-parser');
 const controller = require('./controller');
 const service = require('./service');
-var Agenda = require('agenda');
-const weekJob = require('./weekjob.js');
+const Agenda = require('agenda');
+const weekJob = require('../jobs/weekJob.js');
+const dailyJob = require('../jobs/dailyJob.js');
+
+const demoJob = require('../jobs/demoJob.js');
+const demoScoreJob = require('../jobs/demoScoreJob.js');
+const demoEndDayJob = require('../jobs/demoEndDayJob.js');
+
+
 
 const mongoConnectionString = "mongodb://localhost:27017/scoreboarddb";
 
@@ -25,15 +32,27 @@ const agenda = new Agenda({
     options: {
       useNewUrlParser: true,
     },
-  }, maxConcurrency: 1, defaultConcurrency: 1
+  }, maxConcurrency: 5, defaultConcurrency: 5
 });
 
 
 weekJob.define(agenda);
+dailyJob.define(agenda);
+
+//demo simulate
+demoJob.define(agenda);
+demoScoreJob.define(agenda);
+demoEndDayJob.define(agenda);
 
 agenda.on('ready', function(){
   console.log('Agenda connected to mongodb');
   weekJob.every(agenda);
+  dailyJob.every(agenda);
+
+  demoJob.every(agenda);
+  demoScoreJob.every(agenda);
+  demoEndDayJob.every(agenda);
+  agenda.purge();
   agenda.start();
 });
 
@@ -78,10 +97,14 @@ function prepareMongo() {
     // prepare mongo.
     return new Promise((resolve, reject) => {
         mongoCli = mongoose;
-        mongoCli.connect(mongoConnectionString, {useNewUrlParser: true});
+        mongoCli.connect(mongoConnectionString, {useNewUrlParser: true, useFindAndModify: false });
         mongoCli.connection.on("connected", function () {
             /* eslint-disable no-console */
             console.log("mongo ready!");
+            mongoCli.connection.collections['users'].drop( function(err) {
+                console.log('collection dropped');
+                reject(err);
+            });
             /* eslint-enable no-console */
             resolve();
         });
@@ -125,6 +148,7 @@ prepareRedis()
     return startListening();
 });
 
+/*
 function graceful() {
   console.log('Stoping agenda!');
   agenda.stop(function() {
@@ -132,5 +156,6 @@ function graceful() {
   });
 }
 
-//process.on('SIGTERM', graceful);
-//process.on('SIGINT' , graceful);
+process.on('SIGTERM', graceful);
+process.on('SIGINT' , graceful);
+*/

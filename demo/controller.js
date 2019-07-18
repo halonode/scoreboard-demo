@@ -5,27 +5,35 @@
 const ScoreboardService = require('./service');
 
 class ScoreboardController {
+    
+
     static register(app) {
         app.get('/', this.list);
         app.get('/toplist', this.topList);
         app.post("/clear", this.clear);
-        app.post("/insert", this.insert);
         app.post("/modify", this.modify);
         app.post("/remove", this.remove);
+
+        app.post("/resetWeek", this.resetWeek);
     }
 
     static topList(req, res) {
-        //return res.render('topList.ejs');
-
         return ScoreboardService.getTopList()
         .then((list) => {
-            if(list.list == null){
+            return ScoreboardService.getWeekAwards()
+            .then((awards) => {
+                if(list.list == null){
                 res.redirect('/'); 
-            }else{
-                res.render('topList.ejs', {
-                    list: list.list
-                });
-            }
+                }else{
+                    res.render('topList.ejs', {
+                        list: list.list,
+                        day: ScoreboardService.getDay(),
+                        weekEnd: ScoreboardService.getWeek(),
+                        awarded: ScoreboardService.getAwarded(),
+                        weekAwards: awards.list
+                    });
+                }
+            });
             
         });
     }
@@ -48,15 +56,6 @@ class ScoreboardController {
         void(req);
 
         return ScoreboardService.clear()
-        .then(() => {
-            res.json({});
-        });
-    }
-
-    static insert(req, res) {
-        const num = +req.body.num || 1;
-
-        return ScoreboardService.insertRandom(num)
         .then(() => {
             res.json({});
         });
@@ -89,6 +88,15 @@ class ScoreboardController {
     static polo (){
         console.log("marco");
         return true;
+    }
+
+    static resetWeek(req, res){
+        void(req);
+
+        return ScoreboardService.resetWeek()
+        .then(() => {
+            res.json({});
+        });
     }
 }
 

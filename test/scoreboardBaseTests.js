@@ -6,11 +6,11 @@ const fs = require('fs');
 const sinon = require('sinon');
 const lured = require('lured');
 const PrepareRedis = require('./prepareRedis');
-const PrepareMongo = require('./prepareMongo');
+//const PrepareMongo = require('./prepareMongo');
 const ScoreboardBase = require('../index').ScoreboardBase;
 
 describe('ScoreboardBase', function () {
-    let redis, sandbox, mongo;
+    let redis, sandbox;
 
     before(function () {
         sandbox = sinon.createSandbox();
@@ -18,19 +18,12 @@ describe('ScoreboardBase', function () {
         return PrepareRedis.prepare()
         .then((_redis) => {
             redis = _redis;
-        }).then(() => {
-           /*return PrepareMongo.prepare()
-           .then((_mongo) => {
-               mongo = _mongo;
-           }); 
-           */
         });
     });
 
     after(function () {
         // teardown.
         PrepareRedis.teardown(redis);
-        //PrepareMongo.teardown(mongo);
     });
 
     afterEach(function () {
@@ -171,10 +164,7 @@ describe('ScoreboardBase', function () {
             return Promise.all([
                 sb.setScore("Odin",400),
                 sb.setScore("Artemis",300),
-                sb.setScore("Pantheon",500),
-                //sb.setTopListUserInfo("Odin", "Odin", 25, 400, 0),
-                //sb.setTopListUserInfo("Artemis", "Artemis", 25, 300, 0),
-                //sb.setTopListUserInfo("Pantheon", "Pantheon", 25, 500, 0)
+                sb.setScore("Pantheon",500)
             ]);
         });
 
@@ -184,200 +174,185 @@ describe('ScoreboardBase', function () {
 
         describe('unit testing protected methods', function () {
             
-            describe('_clear', function () {
-                it('are you ok', function () {
-                    return sb._clear()
-                    .then(() => {
-                        
+                describe('_clear', function () {
+                    it('are you ok', function () {
+                        return sb._clear()
+                        .then(() => {
+                            
+                            return sb._count()
+                            .then((count) => {
+                                
+                                assert.strictEqual(count, 0);
+                            });
+                        });
+                    });
+                }); // _clear
+
+
+                describe('_count', function () {
+                    it('are you 3', function () {
                         return sb._count()
                         .then((count) => {
-                            
-                            assert.strictEqual(count, 0);
+                            assert.strictEqual(count, 3);                        
                         });
                     });
-                });
-            }); // _clear
+                }); // _count
 
-
-            describe('_count', function () {
-                it('are you 3', function () {
-                    return sb._count()
-                    .then((count) => {
-                        assert.strictEqual(count, 3);                        
-                    });
-                });
-            }); // _count
-
-            describe('_remove', function () {
-                it('can you remove', function () {
-                    return sb._remove("Artemis")
-                    .then(() => {
-                        return sb._count()
-                        .then((count) => {
-                            assert.strictEqual(count, 2);
-                            return sb._getPosition("Artemis")
-                        })
-                        .then((res) => {
-                            // Artemis is gone...
-                            assert.strictEqual(res, null);
-                            
-                        });
-                    });
-                });
-            }); // _remove
-
-            describe('_setScore', function () {
-                it('is score setter good', function () {
-                    return Promise.resolve()
-                    .then(() => {
-                        return sb._setScore("Eve", 10)
+                describe('_remove', function () {
+                    it('can you remove', function () {
+                        return sb._remove("Artemis")
                         .then(() => {
-                            return sb._getScoreAndRank("Eve", sb._sbname)              
-                        })
-                        .then((res) => {
-                            assert.strictEqual(res[0], 10)
-                            return sb._count();
-                        })
-                        .then((count) => {
-                            assert.strictEqual(count, 4);                            
+                            return sb._count()
+                            .then((count) => {
+                                assert.strictEqual(count, 2);
+                                return sb._getPosition("Artemis")
+                            })
+                            .then((res) => {
+                                // Artemis is gone...
+                                assert.strictEqual(res, null);
+                                
+                            });
                         });
-                        
-                    })
-                    .then(() => {
-                        return sb._setScore("Eve", 20)
+                    });
+                }); // _remove
+
+                describe('_setScore', function () {
+                    it('is score setter good', function () {
+                        return Promise.resolve()
                         .then(() => {
-                            return sb._getScoreAndRank("Eve", sb._sbname)
+                            return sb._setScore("Eve", 10)
+                            .then(() => {
+                                return sb._getScoreAndRank("Eve", sb._sbname)              
+                            })
+                            .then((res) => {
+                                assert.strictEqual(res[0], 10)
+                                return sb._count();
+                            })
+                            .then((count) => {
+                                assert.strictEqual(count, 4);                            
+                            });
                             
                         })
-                        .then((res) => {
-                            assert.strictEqual(res[0], 20);
-                            return sb._count();                            
-                        })
-                        .then((count) => {
-                            assert.strictEqual(count, 4);                            
+                        .then(() => {
+                            return sb._setScore("Eve", 20)
+                            .then(() => {
+                                return sb._getScoreAndRank("Eve", sb._sbname)
+                                
+                            })
+                            .then((res) => {
+                                assert.strictEqual(res[0], 20);
+                                return sb._count();                            
+                            })
+                            .then((count) => {
+                                assert.strictEqual(count, 4);                            
+                            });
+                            
                         });
-                        
                     });
-                });
-            }); //_setScore
+                }); //_setScore
 
 
-            describe('_modifyScore', function () {
-                it('case positive', function () {
-                    return sb._modifyScore("Odin", 50)
-                    .then(() => {
-                        return sb._getScoreAndRank("Odin", sb._sbname)
-                        .then((res) => {
-                             assert.strictEqual(res[0], 450);                            
+                describe('_modifyScore', function () {
+                    it('case positive', function () {
+                        return sb._modifyScore("Odin", 50)
+                        .then(() => {
+                            return sb._getScoreAndRank("Odin", sb._sbname)
+                            .then((res) => {
+                                 assert.strictEqual(res[0], 450);                            
+                            });
+                            
                         });
-                        
+                    });
+
+                    it('case negative', function () {
+                        return sb._modifyScore("Artemis", -50)
+                        .then(() => {
+                            return sb._getScoreAndRank("Artemis", sb._sbname)
+                            .then((res) => {
+                                assert.strictEqual(res[0], 250);                            
+                            });                        
+                        });
                     });
                 });
 
-                it('case negative', function () {
-                    return sb._modifyScore("Artemis", -50)
-                    .then(() => {
-                        return sb._getScoreAndRank("Artemis", sb._sbname)
+                describe('_getRange', function () {
+                    it('are you in range', function () {
+                        return sb._getRange(0, 2, sb._sbname)
                         .then((res) => {
-                            assert.strictEqual(res[0], 250);                            
-                        });                        
+                            assert.deepEqual(res, {
+                                range: [
+                                    "Pantheon", 500,
+                                    "Odin", 400,
+                                    "Artemis", 300
+                                ]
+                            })
+                            
+                        });
                     });
                 });
-            });
 
-            describe('_getRange', function () {
-                it('are you in range', function () {
-                    return sb._getRange(0, 2, sb._sbname)
-                    .then((res) => {
-                        assert.deepEqual(res, {
-                            range: [
+                describe('_getRangeAndTotal', function () {
+                    it('can you get total players with range', function () {
+                        return sb._getRangeAndTotal(0, 2)
+                        .then((res) => {
+                            assert.deepEqual(res, {
+                                total: 3,
+                                range: [ 
                                 "Pantheon", 500,
                                 "Odin", 400,
-                                "Artemis", 300
-                            ]
-                        })
-                        
-                    });
-                });
-            });
-
-            describe('_getRangeAndTotal', function () {
-                it('can you get total players with range', function () {
-                    return sb._getRangeAndTotal(0, 2)
-                    .then((res) => {
-                        assert.deepEqual(res, {
-                            total: 3,
-                            range: [ 
-                            "Pantheon", 500,
-                            "Odin", 400,
-                            "Artemis", 300                            ]
-                        })
-                        
-                    });
-                });
-                
-            });
-
-            describe('_settleRank', function () {
-                it('settle rank', function () {
-                    return sb._settleRank([
-                        ["Pantheon", 500],
-                        ["Odin", 400],
-                        ["Artemis", 300]
-                    ])
-                    .then((res) => {
-                        assert.deepEqual(res, [
-                            1, 2, 3
-                        ]);
-                    });
-                });
-            });
-
-            describe('_getRankFromScore', function () {
-                it('rank from score.', function () {
-                    return Promise.resolve()
-                    .then(() => {
-                        return sb._getRankFromScore(400)
-                        .then((rank) => {
-                            assert.strictEqual(rank, 2);
-                        });
-                    })
-                    .then(() => {
-                        return sb._getRankFromScore(500)
-                        .then((rank) => {
-                            assert.strictEqual(rank, 1);
+                                "Artemis", 300                            ]
+                            })
+                            
                         });
                     });
+                    
                 });
-            });
 
-            describe('_copyKey(destination)', function () {
-                it('can you copy scoreboard data to destination', function () {
-                    return Promise.resolve()
-                    .then(() => {
-                        return sb._copyKey("TestSource")
+                describe('_settleRank', function () {
+                    it('settle rank', function () {
+                        return sb._settleRank([
+                            ["Pantheon", 500],
+                            ["Odin", 400],
+                            ["Artemis", 300]
+                        ])
                         .then((res) => {
-                            assert.strictEqual(res , "OK");
+                            assert.deepEqual(res, [
+                                1, 2, 3
+                            ]);
                         });
-                        
+                    });
+                });
+
+                describe('_getRankFromScore', function () {
+                    it('rank from score.', function () {
+                        return Promise.resolve()
+                        .then(() => {
+                            return sb._getRankFromScore(400)
+                            .then((rank) => {
+                                assert.strictEqual(rank, 2);
+                            });
+                        })
+                        .then(() => {
+                            return sb._getRankFromScore(500)
+                            .then((rank) => {
+                                assert.strictEqual(rank, 1);
+                            });
+                        });
+                    });
+                });
+
+                describe('_copyKey(destination)', function () {
+                    it('can you copy scoreboard data to destination', function () {
+                        return Promise.resolve()
+                        .then(() => {
+                            return sb._copyKey("TestSource")
+                            .then((res) => {
+                                assert.strictEqual(res , "OK");
+                            });
+                        });
                     });
                 });
             });
-
-
-            
-
-        }); // unit testing protected methods
-
-
-        describe('unit testing public methods', function () {
-            
-        });
-
-    });
-
-        
+        }); 
     }); // Unit TestScoreboard 
-
-
 });

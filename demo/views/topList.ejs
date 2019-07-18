@@ -15,6 +15,12 @@
         function reloadPage() {
             document.location.reload();
         }
+        setInterval(function(){ 
+            if(<%=awarded%> == false){
+                reloadPage(); 
+            }
+        }, 3000);
+
         jQuery(function($) {
 
             $('#clear').click(function (e) {
@@ -27,15 +33,18 @@
                     }
                 });
             });
-            $('#insert').submit(function (e) {
+            $('#resetWeek').submit(function (e) {
+                $("#resetBtn").attr("disabled", true);
                 e.preventDefault();
                 const _form = $(this);
                 $.ajax({
-                    url: '/insert',
+                    url: '/resetWeek',
                     type: 'POST',
                     data: _form.serialize(),
                     success: function(/*result, textStatus, xhr*/) {
-                        reloadPage();
+                        setInterval(function(){ 
+                            reloadPage(); 
+                        }, 5000);
                     }
                 });
             });
@@ -85,7 +94,31 @@
     <div class="container">
 
         <div class="row">
-            <h2>scoreboardemo top list.</h2>
+            <h2>scoreboardemo top list.</h2> <h3> day: <%=day%>. </h3> <h4>next day in 1 min later. </h4>
+        </br>
+            <% 
+                if(weekEnd==true && awarded==true){
+            %>  
+            <div class="row" style="text-align: left">
+                <form id="resetWeek">
+                    <button id="resetBtn" type="submit" class="btn btn-sm btn-primary">Reset Week</button>
+                </form>
+            </div>
+            <div class="row" style="text-align: left">
+                <h2>Week Awards List</h2>
+                <div>
+                    <ul>
+                    <% 
+                    weekAwards.forEach((data) => { 
+                    %>
+                        <li><%=data.userId%> => <%=data.score%></li>
+                    <% }); %>
+                    </ul>
+                </div>
+            </div>
+            <%  
+                }
+            %>
 
             <div style="padding:12px 12px 0px 0px;">
                 <table class="table table-striped">

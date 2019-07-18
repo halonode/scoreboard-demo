@@ -4,7 +4,6 @@
 
 const Promise = require('bluebird');
 const Scoreboard = require('../index').ScoreboardScoreDesc;
-const mongoose = require('mongoose');
 const moment = require('moment');
 const UserModel = require('../model/UserModel');
 
@@ -18,17 +17,9 @@ class ScoreboardService {
         .then((_sb) => {
             this._instance = _sb;
             this._nameSeed = 1;
-
             this._instance._clearMongo();
 
-            return this._instance.clear()
-            .then(() => {
-                // Insert 10 * pageSize users to the board.
-                return this.insertRandom(pageSize * 10);
-            }).then(() => {
-                const yesterday = moment().add(-1, 'days').format("YYYYMMDD");
-                return this._instance._copyKey(yesterday);
-            });
+            return this._instance.clear();
         });
     }
 
@@ -36,25 +27,12 @@ class ScoreboardService {
         return this._instance.getTopList(listSize);
     }
 
-    static getList(page) {
-        return this._instance.getList(page, pageSize);
+    static getWeekAwards() {
+        return this._instance.getWeekAwards();
     }
 
-    static insertRandom(num) {
-
-        
-        const promises = [];
-        for (let i = 0; i < num; ++i) {
-            const name = 'player' + ScoreboardService._nameSeed++;
-            const score = (Math.random() * 1000 | 0);
-            const uid = mongoose.Types.ObjectId();
-            var player = new UserModel({ userId: uid, userName: name, age: 0, money: 0 });
-            player.save();
-            promises.push(this._instance.setScore(uid.toString(), score));
-            //promises.push(this._instance.setTopListUserInfo(name, name, 25, score, 2));
-            //promises.push(this.playerCreate(name, 0, 0, score));
-        }
-        return Promise.all(promises);
+    static getList(page) {
+        return this._instance.getList(page, pageSize);
     }
 
     static clear() {
@@ -69,10 +47,71 @@ class ScoreboardService {
         return this._instance.modifyScore(name, delta);
     }
 
-    static marco(){
-        return this._instance.getTopList(listSize);
+    static getTopListForWeek(){
+        return this.getTopList();
     }
     
+    static getTotalScore(){
+        return this._instance.getTotalScore();
+    }
+
+    static modifyUserMoney(uId, prize){
+        return Promise.resolve()
+        .then(() => {
+            return this._instance._setWeekAward(uId, prize)
+            .then(() => {
+                //console.log(prize);
+                return UserModel.findOneAndUpdate({ userId: uId }, { $inc: { money: prize }});
+            });
+        });
+    }
+
+    //simulation
+    static resetWeek(){
+        return this._instance.clear()
+        .then(() => {
+            this.setDay(1);
+            this.setWeek(false);
+            this.setAwarded(false);
+
+            console.log(this.getDay());
+            console.log(this.getWeek());
+            console.log(this.getAwarded());
+        });
+    }
+
+    static setDay(n){
+         this._day = n;
+    }
+
+    static setWeek(n){
+         this._weekEnd = n;
+    }
+
+    static setAwarded(n){
+         this._awarded = n;         
+    }
+
+    static getDay(){
+         return this._day;
+    }
+
+    static getWeek(){
+         return this._weekEnd;
+    }
+
+    static getAwarded(){
+         return this._awarded;         
+    }
+
+    static demoEndDay(){
+        const yesterday = moment().add(-1, 'days').format("YYYYMMDD");
+        return this._instance._copyKey(yesterday);
+    }
+
+    static pickPlayer(){
+
+    }
 
 }
 
@@ -81,5 +120,8 @@ class ScoreboardService {
 // static fields.
 ScoreboardService._instance = null;
 ScoreboardService._nameSeed = 1;
+ScoreboardService._day = 1;
+ScoreboardService._weekEnd = false;
+ScoreboardService._awarded = false;
 
 module.exports = ScoreboardService;
