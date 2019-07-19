@@ -1,9 +1,6 @@
 
 const Promise = require('bluebird');
-const mongoose = require('mongoose');
-const UserModel = require('../model/UserModel');
 const ScoreboardService = require('../demo/service');
-const faker = require('faker');
 
 const maxTotalDay = 7;
 var curentDay = 0;
@@ -13,7 +10,7 @@ class DemoEndDayJob {
 	run(){
 		curentDay = ScoreboardService.getDay();
 		++curentDay;
-		console.log(curentDay);
+		console.log("Day: " + curentDay);
 		ScoreboardService.setDay(curentDay);
 		if(curentDay > 1){
 			return ScoreboardService.demoEndDay();

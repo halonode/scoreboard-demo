@@ -15,6 +15,7 @@ class ScoreboardController {
         app.post("/remove", this.remove);
 
         app.post("/resetWeek", this.resetWeek);
+        app.post("/pickPlayer", this.pickPlayer);
     }
 
     static topList(req, res) {
@@ -22,15 +23,19 @@ class ScoreboardController {
         .then((list) => {
             return ScoreboardService.getWeekAwards()
             .then((awards) => {
+
                 if(list.list == null){
-                res.redirect('/'); 
+                    res.redirect('/'); 
                 }else{
                     res.render('topList.ejs', {
                         list: list.list,
+                        playerList: list.dist,
                         day: ScoreboardService.getDay(),
                         weekEnd: ScoreboardService.getWeek(),
                         awarded: ScoreboardService.getAwarded(),
-                        weekAwards: awards.list
+                        weekAwards: awards.list,
+                        player: ScoreboardService.getPlayer(),
+                        totalPrize: ScoreboardService._total
                     });
                 }
             });
@@ -92,8 +97,15 @@ class ScoreboardController {
 
     static resetWeek(req, res){
         void(req);
-
         return ScoreboardService.resetWeek()
+        .then(() => {
+            res.json({});
+        });
+    }
+
+    static pickPlayer(req, res){
+        void(req);
+        return ScoreboardService.pickAndSetDemoPlayer()
         .then(() => {
             res.json({});
         });

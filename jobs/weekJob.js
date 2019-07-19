@@ -6,7 +6,7 @@ var curent = 0;
 module.exports.define = function(agenda) {
 	agenda.define('weekJob', (job, done) => {
 	  (async () => {
-	  	console.log("getWeek weekJob " + ScoreboardService.getWeek());
+	  	//console.log("getWeek weekJob " + ScoreboardService.getWeek());
 	  	if(ScoreboardService.getWeek() == true && ScoreboardService.getAwarded() == false && ScoreboardService.getDay() == 7){
 			await facade.run();
 	    	await job.touch();

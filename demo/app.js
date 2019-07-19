@@ -21,9 +21,90 @@ const demoJob = require('../jobs/demoJob.js');
 const demoScoreJob = require('../jobs/demoScoreJob.js');
 const demoEndDayJob = require('../jobs/demoEndDayJob.js');
 
-
+const UserModel = require('../model/UserModel');
 
 const mongoConnectionString = "mongodb://localhost:27017/scoreboarddb";
+
+// using body parser.
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(bodyParser.json());
+
+// setting views folder.
+app.set('views', path.join(__dirname, 'views'));
+
+// using ejs.
+app.engine('ejs',ejs.renderFile);
+
+// register controller.
+controller.register(app);
+
+let redisCli = null;
+
+
+function prepareRedis() {
+    // prepare redis.
+    return new Promise((resolve, reject) => {
+        redisCli = redis.createClient();
+
+        redisCli.on("ready", function () {
+            /* eslint-disable no-console */
+            console.log("redis ready!");
+            /* eslint-enable no-console */
+            resolve();
+        });
+        redisCli.on("error", function (err) {
+            reject(err);
+        });
+    });
+}
+
+async function dropMongo() {
+
+    return new Promise((resolve, reject) => {
+        try {
+            const conn = mongoose.connect(mongoConnectionString, {useNewUrlParser: true, useFindAndModify: false });
+            //mongoose.set('debug', true);
+
+            UserModel.deleteMany({}, function(err) { 
+               console.log('user collection removed'); 
+            });
+
+            resolve();
+        }
+        catch(err) {
+            reject(err);
+        }
+    });
+ 
+}
+
+async function createMongo() {
+    //await mongoose.connect(mongoConnectionString, {useNewUrlParser: true, useFindAndModify: false });
+    console.log("mongo is ready");
+}
+
+function initializeService() {
+    return service.initialize(redisCli);
+}
+
+function startListening() {
+    // start listening.
+    return new Promise((resolve, reject) => {
+        try {
+            const server = app.listen(8080, function () {
+                /* eslint-disable no-console */
+                console.log("server on PORT:" + server.address().port);
+                /* eslint-enable no-console */
+                resolve();
+            });
+        }
+        catch(err) {
+            reject(err);
+        }
+    });
+}
 
 // define weekly job
 const agenda = new Agenda({
@@ -44,108 +125,40 @@ demoJob.define(agenda);
 demoScoreJob.define(agenda);
 demoEndDayJob.define(agenda);
 
-agenda.on('ready', function(){
-  console.log('Agenda connected to mongodb');
-  weekJob.every(agenda);
-  dailyJob.every(agenda);
 
-  demoJob.every(agenda);
-  demoScoreJob.every(agenda);
-  demoEndDayJob.every(agenda);
-  agenda.purge();
-  agenda.start();
+agenda.on('ready', function(){
+    agenda.purge((err, numRemoved) => {
+        console.log("Jobs purged: " + numRemoved);
+    });
+
+    weekJob.every(agenda);
+    dailyJob.every(agenda);
+
+    demoJob.every(agenda);
+    demoScoreJob.every(agenda);
+    demoEndDayJob.every(agenda);
 });
 
-
-
-// using body parser.
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-app.use(bodyParser.json());
-
-// setting views folder.
-app.set('views', path.join(__dirname, 'views'));
-
-// using ejs.
-app.engine('ejs',ejs.renderFile);
-
-// register controller.
-controller.register(app);
-
-let redisCli = null;
-let mongoCli = null;
-
-function prepareRedis() {
-    // prepare redis.
-    return new Promise((resolve, reject) => {
-        redisCli = redis.createClient();
-
-        redisCli.on("ready", function () {
-            /* eslint-disable no-console */
-            console.log("redis ready!");
-            /* eslint-enable no-console */
-            resolve();
-        });
-        redisCli.on("error", function (err) {
-            reject(err);
-        });
-    });
-}
-
-function prepareMongo() {
-    // prepare mongo.
-    return new Promise((resolve, reject) => {
-        mongoCli = mongoose;
-        mongoCli.connect(mongoConnectionString, {useNewUrlParser: true, useFindAndModify: false });
-        mongoCli.connection.on("connected", function () {
-            /* eslint-disable no-console */
-            console.log("mongo ready!");
-            mongoCli.connection.collections['users'].drop( function(err) {
-                console.log('collection dropped');
-                reject(err);
-            });
-            /* eslint-enable no-console */
-            resolve();
-        });
-        mongoCli.connection.on('error', err => {
-            reject(err);
-        });
-        
-    });
-}
-
-function initializeService() {
-    return service.initialize(redisCli, mongoCli);
-}
-
-function startListening() {
-    // start listening.
-    return new Promise((resolve, reject) => {
-        try {
-            const server = app.listen(8080, function () {
-                /* eslint-disable no-console */
-                console.log("server on PORT:" + server.address().port);
-                /* eslint-enable no-console */
-                resolve();
-            });
-        }
-        catch(err) {
-            reject(err);
-        }
-    });
+async function startJobs(){
+    await agenda.start(); 
+    console.log('Agenda connected to mongodb');
 }
 
 prepareRedis()
 .then(() => {
-    // initialize scoreboard service..
-    return prepareMongo();
+    return dropMongo();
+})
+.then(() => {
+    return createMongo();
+})
+.then(() => {
+    return startListening();
 })
 .then(() => {
     return initializeService();
 })
 .then(() => {
-    return startListening();
+    return startJobs();
 });
 
 /*

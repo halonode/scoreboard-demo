@@ -7,22 +7,23 @@ const faker = require('faker');
 
 class DemoScoreJob {
 	run(){
-
 		if(!ScoreboardService.getWeek()){
 			// Get the count of all users
 			UserModel.countDocuments().lean().exec(function (err, count) {
 		        for (let i = 0; i < 10; ++i) {
-		            var random = Math.floor(Math.random() * count)
+		            var random = Math.floor(Math.random() * count);
 			        UserModel.findOne().skip(random).lean().exec(
 				    function (err, user) {
 				    	if(!err){
-				 			return ScoreboardService.modifyScore(user.userId.toString(), faker.random.number());
+				    		if(user != null){
+				    			ScoreboardService.getTotalScore();
+				 				return ScoreboardService.modifyScore(user.userId.toString(), faker.random.number());
+				    		}
 				    	}
 				    });
 		        }
 			});
 		}
-
 	}
 }
 

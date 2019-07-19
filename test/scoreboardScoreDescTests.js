@@ -12,7 +12,7 @@ const PrepareMongo = require('./prepareMongo');
 const Scoreboard = require('../index').ScoreboardScoreDesc;
 
 describe('ScoreboardScoreDesc', function () {
-    let redis, sandbox, mongo;
+    let redis, sandbox;
 
     before(function () {
         sandbox = sinon.createSandbox();
@@ -20,18 +20,11 @@ describe('ScoreboardScoreDesc', function () {
         return PrepareRedis.prepare()
         .then((_redis) => {
             redis = _redis;
-        }).then(() => {
-            return PrepareMongo.prepare()
-               .then((_mongo) => {
-                   mongo = _mongo;
-               }); 
-        });
+        })
     });
 
     after(function () {
         PrepareRedis.teardown(redis);
-        PrepareMongo.teardown(mongo);
-
     });
 
     afterEach(function () {
@@ -42,7 +35,7 @@ describe('ScoreboardScoreDesc', function () {
         let sb;
 
         before(function () {
-            return Scoreboard.create(redis, "sbTest", mongo)
+            return Scoreboard.create(redis, "sbTest")
             .then((_sb) => {
                 sb = _sb;
             })

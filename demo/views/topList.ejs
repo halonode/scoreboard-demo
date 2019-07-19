@@ -33,6 +33,17 @@
                     }
                 });
             });
+            $('#pickPlayer').click(function (e) {
+                $("#pickPlayer").attr("disabled", true);
+                e.preventDefault();
+                $.ajax({
+                    url: '/pickPlayer',
+                    type: 'POST',
+                    success: function(/*result, textStatus, xhr*/) {
+                        //updatePage(1);
+                    }
+                });
+            });
             $('#resetWeek').submit(function (e) {
                 $("#resetBtn").attr("disabled", true);
                 e.preventDefault();
@@ -94,7 +105,16 @@
     <div class="container">
 
         <div class="row">
-            <h2>scoreboardemo top list.</h2> <h3> day: <%=day%>. </h3> <h4>next day in 1 min later. </h4>
+
+            <div>
+                <div style="width:300px; float:left"> <h2>scoreboardemo</h2> <h3> day: <%=day%>. <small>next day in 1 min. </small> </h3>  </div>
+                <div style="width:300px; float:right"><h3 style="text-align: right"> Total Prize: <%=totalPrize%>. </h3></div>
+            </div>
+
+           <div><h5>current demo player: <%=player%> <button id="pickPlayer" type="submit" class="btn btn-sm btn-primary">Pick Player</button></h5></div>
+            
+            
+
         </br>
             <% 
                 if(weekEnd==true && awarded==true){
@@ -104,10 +124,11 @@
                     <button id="resetBtn" type="submit" class="btn btn-sm btn-primary">Reset Week</button>
                 </form>
             </div>
-            <div class="row" style="text-align: left">
-                <h2>Week Awards List</h2>
+            <div class="row" style="text-align: left; font-size:12px;">
+                <h3 style="padding-left: 20px">Week Awards</h3> 
                 <div>
-                    <ul>
+                    <small style=" float: right">(scroll ^)</small>
+                    <ul style="overflow-y: scroll; height: 200px">
                     <% 
                     weekAwards.forEach((data) => { 
                     %>
@@ -124,7 +145,6 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
-                        <th>order</th>
                         <th>rank</th>
                         <th>userID</th>
                         <th>score</th>
@@ -138,10 +158,19 @@
                     <% 
                     var order=1;
                     list.forEach((data) => { 
-
+                    %>
+                    <% 
+                    if(data.userId == player){
+                    %>
+                    <tr style="font-weight: bolder; ">
+                    <% 
+                    } else {
                     %>
                     <tr>
-                        <td><%=order%></td>
+                    <% 
+                    }
+                    %>
+                    
                         <td><%=data.rank%></td>
                         <td><%=data.userId%></td>
                         <td><%=data.score%></td>
@@ -151,6 +180,40 @@
                         <td></td>
                     </tr>
                     <% ++order; }); %>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <% 
+                    if(playerList != null){
+                    
+                    playerList.forEach((data) => { 
+                    %>
+                    <% 
+                    if(data.userId == player){
+                    %>
+                    <tr style="font-weight: bolder; ">
+                    <% 
+                    } else {
+                    %>
+                    <tr>
+                    <% 
+                    }
+                    %>
+                        <td><%=data.rank%></td>
+                        <td><%=data.userId%></td>
+                        <td><%=data.score%></td>
+                        <td><%=data.userName%></td>
+                        <td><%=data.userAge%></td>
+                        <td><%=data.rankChange%></td>
+                        <td></td>
+                    </tr>
+                    <% }); } %>
                 </table>
             </div>
 
