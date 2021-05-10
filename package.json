@@ -16,7 +16,7 @@
   },
   "author": "Haluk Demir https://github.com/halukdemir",
   "dependencies": {
-    "lodash": "^4.17.0",
+    "lodash": "^4.17.21",
     "bluebird": "*",
     "redis": "~2.8.0",
     "lured": "*",
