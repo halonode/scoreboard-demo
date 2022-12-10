@@ -33,7 +33,7 @@
     "jsdoc": "*",
     "ink-docstrap": "*",
     "gh-pages": "*",
-    "express": "~4.17.1",
+    "express": "~4.17.3",
     "ejs": "~2.6.2",
     "body-parser": "~1.19.0",
     "faker": "4.1.0"
